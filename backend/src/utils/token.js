@@ -25,15 +25,19 @@ export const hashToken = (token) => {
         .digest("hex");
 };
 
-export const setAuthCookies = (res, accessToken, refreshToken) => {
+const getCookieOptions = () => {
     const isProduction = process.env.NODE_ENV === "production";
 
-    const cookieOptions = {
+    return {
         httpOnly: true,
         secure: isProduction,
-        sameSite: "lax",
+        sameSite: isProduction ? "none" : "lax",
         path: "/",
     };
+};
+
+export const setAuthCookies = (res, accessToken, refreshToken) => {
+    const cookieOptions = getCookieOptions();
 
     res.cookie("accessToken", accessToken, {
         ...cookieOptions,
@@ -47,14 +51,7 @@ export const setAuthCookies = (res, accessToken, refreshToken) => {
 };
 
 export const clearAuthCookies = (res) => {
-    const isProduction = process.env.NODE_ENV === "production";
-
-    const cookieOptions = {
-        httpOnly: true,
-        secure: isProduction,
-        sameSite: "lax",
-        path: "/",
-    };
+    const cookieOptions = getCookieOptions();
 
     res.clearCookie("accessToken", cookieOptions);
     res.clearCookie("refreshToken", cookieOptions);
