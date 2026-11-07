@@ -1,6 +1,6 @@
-
-import express from "express";
 import cors from "cors";
+import express from "express";
+
 import helmet from "helmet";
 import morgan from "morgan";
 import cookieParser from "cookie-parser";
@@ -18,10 +18,23 @@ const app = express();
 
 app.use(helmet());
 
+const allowedOrigins = [
+    "http://localhost:5173",
+    "https://frontend-six-pied-92.vercel.app",
+];
+
 app.use(
     cors({
-        origin: process.env.CLIENT_URL || "http://localhost:5173",
+        origin: (origin, callback) => {
+            if (!origin || allowedOrigins.includes(origin)) {
+                return callback(null, true);
+            }
+
+            return callback(new Error(`CORS blocked for origin: ${origin}`));
+        },
         credentials: true,
+        methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+        allowedHeaders: ["Content-Type", "Authorization"],
     })
 );
 
