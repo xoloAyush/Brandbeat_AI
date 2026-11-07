@@ -1,0 +1,8 @@
+.env
+.venv/
+__pycache__/
+*.py[cod]
+storage/policies/*
+storage/reviews/*
+!storage/policies/.gitkeep
+!storage/reviews/.gitkeep
