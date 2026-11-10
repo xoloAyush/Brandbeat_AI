@@ -3,7 +3,7 @@
     "rewrites": [
         {
             "source": "/api/:path*",
-            "destination": "https://brandbeat-backend-jcx5.onrender.com/api/:path*"
+            "destination": "https://brandbeatai-production.up.railway.app/api/:path*"
         },
         {
             "source": "/(.*)",
