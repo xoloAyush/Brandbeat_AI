@@ -6,14 +6,26 @@ import {
   Menu,
 } from "lucide-react";
 
+import { useSelector } from "react-redux";
+
 export default function Header({ onMenuClick }) {
+  const { user } = useSelector((state) => state.auth);
+
+  const userName = user?.name || user?.email || "User";
+  const userRole = user?.role || "Member";
+
+  const initials = userName
+    .split(" ")
+    .map((word) => word[0])
+    .join("")
+    .slice(0, 2)
+    .toUpperCase();
+
   return (
     <header className="sticky top-0 z-30 flex h-16 items-center justify-between gap-3 border-b border-slate-200 bg-white/95 px-4 backdrop-blur sm:h-20 sm:px-6 lg:px-8">
 
       {/* Left section */}
       <div className="flex min-w-0 items-center gap-3">
-
-        {/* Mobile menu */}
         <button
           type="button"
           onClick={onMenuClick}
@@ -32,7 +44,6 @@ export default function Header({ onMenuClick }) {
             Manage your brand compliance workflow
           </p>
         </div>
-
       </div>
 
       {/* Right section */}
@@ -52,24 +63,23 @@ export default function Header({ onMenuClick }) {
           className="relative rounded-lg p-2 text-slate-600 transition hover:bg-slate-100"
         >
           <Bell size={19} />
-
           <span className="absolute right-1.5 top-1.5 h-2 w-2 rounded-full bg-amber-400" />
         </button>
 
-        {/* Profile */}
+        {/* Dynamic Profile */}
         <div className="ml-1 flex items-center gap-2 border-l border-slate-200 pl-3 sm:ml-2 sm:gap-3 sm:pl-4">
 
           <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-slate-900 text-sm font-semibold text-white">
-            A
+            {initials}
           </div>
 
           <div className="hidden sm:block">
-            <p className="text-sm font-semibold text-slate-900">
-              Admin
+            <p className="max-w-32 truncate text-sm font-semibold text-slate-900">
+              {userName}
             </p>
 
-            <p className="text-xs text-slate-500">
-              Administrator
+            <p className="text-xs capitalize text-slate-500">
+              {userRole}
             </p>
           </div>
 
@@ -77,10 +87,8 @@ export default function Header({ onMenuClick }) {
             size={16}
             className="hidden text-slate-400 sm:block"
           />
-
         </div>
       </div>
-
     </header>
   );
 }
