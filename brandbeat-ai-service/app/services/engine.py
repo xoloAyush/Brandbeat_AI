@@ -888,10 +888,12 @@ def review_submission_pdf(pdf_path: str, user_name: str = "staff"):
     stamp = datetime.now().strftime("%Y%m%d_%H%M%S_%f")
     os.makedirs(OUTPUT_DIR, exist_ok=True)
 
-    reviewed_pdf = None
-    if report["findings"]:
-        reviewed_pdf = os.path.join(OUTPUT_DIR, f"{stem}_REVIEWED_{stamp}.pdf")
-        highlight_pdf(pdf_path, report["findings"], reviewed_pdf)
+    reviewed_pdf = os.path.join(OUTPUT_DIR, f"{stem}_REVIEWED_{stamp}.pdf")
+    try:
+        highlight_pdf(pdf_path, report.get("findings", []), reviewed_pdf)
+    except Exception as exc:
+        print(f"Warning: highlighting PDF failed: {exc}")
+        reviewed_pdf = None
 
     report_json = os.path.join(OUTPUT_DIR, f"{stem}_{stamp}.json")
     report_md = os.path.join(OUTPUT_DIR, f"{stem}_{stamp}.md")

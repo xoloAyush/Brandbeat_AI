@@ -315,21 +315,44 @@ async def review_document(file: UploadFile = File(...), user_name: str = Form("s
         raise HTTPException(status_code=500, detail=f"Document review failed: {str(exc)}")
 
 
-@app.get(f"{API_PREFIX}/reviews/{{review_id}}/download/{{artifact}}", dependencies=[Depends(verify_service_token)])
+@app.get(
+    f"{API_PREFIX}/reviews/{{review_id}}/download/{{artifact}}",
+    dependencies=[Depends(verify_service_token)]
+)
 def download_artifact(review_id: str, artifact: str):
     if not re.fullmatch(r"[a-f0-9]{32}", review_id):
-        raise HTTPException(status_code=400, detail="Invalid review ID.")
+        raise HTTPException(400, "Invalid review ID.")
+
     if artifact not in {"reviewed_pdf", "json", "markdown"}:
-        raise HTTPException(status_code=400, detail="Unsupported artifact.")
+        raise HTTPException(400, "Unsupported artifact.")
+
     artifact_dir = Path(_engine.OUTPUT_DIR) if _engine else REVIEW_DIR
-    candidates = list(artifact_dir.glob(f"{review_id}_*"))
-    if artifact == "reviewed_pdf":
-        candidates = [p for p in candidates if "_REVIEWED_" in p.name and p.suffix == ".pdf"]
-    elif artifact == "json":
-        candidates = [p for p in candidates if p.suffix == ".json"]
-    else:
-        candidates = [p for p in candidates if p.suffix == ".md"]
+    search_dirs = [artifact_dir]
+    if REVIEW_DIR not in search_dirs:
+        search_dirs.append(REVIEW_DIR)
+
+    candidates = []
+    for s_dir in search_dirs:
+        if not s_dir.exists():
+            continue
+        matches = list(s_dir.glob(f"{review_id}_*"))
+        if artifact == "reviewed_pdf":
+            matched_pdf = [
+                p for p in matches
+                if "_REVIEWED_" in p.name and p.suffix == ".pdf"
+            ]
+            if not matched_pdf:
+                # Fallback to base uploaded pdf if reviewed copy is not yet found
+                orig = list(s_dir.glob(f"{review_id}.pdf"))
+                matched_pdf = orig
+            candidates.extend(matched_pdf)
+        elif artifact == "json":
+            candidates.extend([p for p in matches if p.suffix == ".json"])
+        else:
+            candidates.extend([p for p in matches if p.suffix == ".md"])
+
     if not candidates:
-        raise HTTPException(status_code=404, detail="Artifact not found.")
+        raise HTTPException(404, "Artifact not found.")
+
     path = max(candidates, key=lambda p: p.stat().st_mtime)
     return FileResponse(path, filename=path.name)

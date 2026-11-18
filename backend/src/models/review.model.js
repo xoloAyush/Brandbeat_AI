@@ -221,6 +221,12 @@ const reviewSchema = new mongoose.Schema(
             default: "",
         },
 
+        aiReviewId: {
+            type: String,
+            default: "",
+            index: true,
+        },
+
         pages: {
             type: Number,
             default: 0,

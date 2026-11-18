@@ -151,7 +151,16 @@ export default function ReviewDetails() {
             setDownloading(artifact);
             setError("");
 
-            const blob = await downloadReviewArtifact(id, artifact);
+            const reviewId = id || review?._id;
+
+            if (!reviewId) {
+                throw new Error("Review ID is missing.");
+            }
+
+            const blob = await downloadReviewArtifact(
+                reviewId,
+                artifact
+            );
 
             const mimeTypes = {
                 reviewed_pdf: "application/pdf",
@@ -191,10 +200,25 @@ export default function ReviewDetails() {
         } catch (err) {
             console.error("Download failed:", err);
 
-            setError(
-                err.response?.data?.message ||
-                "Unable to download this report. Please try again."
-            );
+            let message = "Unable to download this report. Please try again.";
+
+            if (err.response?.data instanceof Blob) {
+                try {
+                    const text = await err.response.data.text();
+                    const parsed = JSON.parse(text);
+                    if (parsed.message) {
+                        message = parsed.message;
+                    }
+                } catch {
+                    // Blob was not JSON
+                }
+            } else if (err.response?.data?.message) {
+                message = err.response.data.message;
+            } else if (err.message) {
+                message = err.message;
+            }
+
+            setError(message);
         } finally {
             setDownloading("");
         }

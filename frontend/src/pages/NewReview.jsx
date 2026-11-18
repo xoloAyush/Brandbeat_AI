@@ -116,13 +116,15 @@ export default function NewReview() {
 
       // Match your Express response structure.
       const reviewId =
+        response?.data?.review_id ||
         response?.data?.reviewId ||
-        response?.data?.review?._id;
+        response?.data?.review?._id ||
+        response?.review_id ||
+        response?.reviewId;
 
       if (!reviewId) {
-        throw new Error(
-          "Review completed, but review ID was not returned."
-        );
+        console.error("Unexpected API response:", response);
+        throw new Error("Review ID was not returned by the server.");
       }
 
       setSubmitted(true);
